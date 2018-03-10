@@ -12,9 +12,7 @@ use std::ffi::CString;
 fn main() {
     std::env::set_var("RUST_BACKTRACE", "1");
 
-    unshare(CloneFlags::CLONE_NEWPID | CloneFlags::CLONE_NEWNS).unwrap_or_else(|e| {
-        println!("{:?}", e);
-    });
+    unshare(CloneFlags::CLONE_NEWPID | CloneFlags::CLONE_NEWNS).expect("unshare failed.");
 
     mount(
         None::<&str>,
@@ -22,21 +20,20 @@ fn main() {
         None::<&str>,
         MsFlags::MS_PRIVATE,
         None::<&str>,
-    ).unwrap_or_else(|e| println!("{}", e));
-    
+    ).expect("mount private dir failed.");
+
+    // mount root dir
     mount(
         Some("/var/lib/test_container/jessie-box"),
         "/var/lib/test_container/jessie-box",
         None::<&str>,
         MsFlags::MS_BIND | MsFlags::MS_REC,
         None::<&str>,
-    ).unwrap_or_else(|e| {
-        println!("{:?}", e);
-    });
+    ).expect("mount root dir failed.");
 
-    chroot("/var/lib/test_container/jessie-box").unwrap_or_else(|e| println!("{}", e));
+    chroot("/var/lib/test_container/jessie-box").expect("chroot failed.");
 
-    chdir("/").unwrap_or_else(|e| println!("{}", e));
+    chdir("/").expect("cd / failed.");
 
     match fork() {
         Ok(ForkResult::Parent { child, .. }) => {
@@ -63,9 +60,7 @@ fn main() {
                 Some("proc"),
                 MsFlags::MS_MGC_VAL,
                 None::<&str>,
-            ).unwrap_or_else(|e| {
-                println!("{:?}", e);
-            });
+            ).expect("mount porcfs failed.");
 
             let dir = CString::new("/bin/bash".to_string()).unwrap();
             let arg = CString::new("-l".to_string()).unwrap();
