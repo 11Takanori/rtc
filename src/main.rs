@@ -66,8 +66,6 @@ fn main() {
             let arg = CString::new("-l".to_string()).unwrap();
 
             execv(&dir, &[dir.clone(), arg]).expect("execution failed.");
-
-            println!("{}", getpid().to_string());
         }
         Err(_) => println!("Fork failed"),
     }
